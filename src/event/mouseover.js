@@ -13,6 +13,9 @@ var _isIframe = false;
 var styleElement;
 const PARENT_TAGS_TO_EXCLUDE = ["STYLE", "SCRIPT", "TITLE"];
 
+/** @type {Map<Range, Node>} */
+const rangeNodeMap = new Map();
+
 export function enableMouseoverTextEvent(
   _window = window,
   textDetectTime = 0.7
@@ -93,7 +96,10 @@ async function getTextFromRange(range) {
   return output;
 }
 
-async function expandRange(range, type) {
+async function expandRange(/** @type {Range} */ range, type) {
+  if (!rangeNodeMap.get(range)) {
+    return;
+  }
   try {
     if (type == "container" || !range.expand) {
       range.setStartBefore(range.startContainer);
@@ -212,6 +218,7 @@ export function getTextRange(textNode) {
   var range = document.createRange();
   range.setStart(textNode, 0);
   range.setEnd(textNode, textNode.length);
+  rangeNodeMap.set(range, textNode);
   return range;
 }
 
@@ -222,6 +229,7 @@ export function getCharRanges(textNode) {
     range.setStart(textNode, i);
     range.setEnd(textNode, i + 1);
     ranges.push(range);
+    rangeNodeMap.set(range, textNode);
   }
   return ranges;
 }
